@@ -1,0 +1,10 @@
+# Runtime for the Industrial Employment Risk Monitor.
+# scikit-learn is pinned so the frozen model.joblib unpickles reliably
+# (FrozenEstimator + CalibratedClassifierCV require scikit-learn >= 1.6).
+streamlit==1.65.0
+pandas>=2.2,<3.1
+numpy>=1.26
+scikit-learn==1.9.1
+scipy>=1.11
+plotly>=5.22
+joblib>=1.3

@@ -1,0 +1,15 @@
+{
+  "version": "ierm-1.0.0",
+  "latest_year": 2023,
+  "n_scored": 1196,
+  "n_rows": 1915,
+  "n_countries": 94,
+  "n_industries": 24,
+  "tier_counts": {
+    "Low": 625,
+    "High": 193,
+    "Elevated": 193,
+    "Watch": 185
+  },
+  "source": "UNIDO INDSTAT Rev.4 (licensed); derived indicators only, raw not redistributed"
+}

@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.venv/
+.streamlit/secrets.toml
+# Raw UNIDO INDSTAT is licensed and is NEVER committed. Only compact derived
+# application data under data/processed/ is tracked.
+data/raw/
+**/data.csv
+*.parquet
