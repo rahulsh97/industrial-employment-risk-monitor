@@ -20,25 +20,34 @@ from app.regions import region_of
 
 PORTFOLIO = "https://rahulsh97.github.io"
 st.set_page_config(page_title="Industrial Employment Risk Monitor", page_icon="\U0001F4C9",
-                   layout="wide", initial_sidebar_state="expanded")
+                   layout="wide", initial_sidebar_state="collapsed")
 
 CSS = """
 <style>
-:root{--ink:#17252c;--muted:#52656d;--teal:#11718b;--rust:#b65b37;--cream:#f7f6f0;--line:#d9e0dd;}
+:root{--ink:#173247;--muted:#60727e;--teal:#376b88;--rust:#aa6849;--cream:#fcfcfa;--line:#cfdae0;--wash:#f3f8fa;}
 .stApp{background:var(--cream);}
 h1,h2,h3,h4{font-family:Georgia,'Times New Roman',serif!important;color:var(--ink);letter-spacing:-.01em;}
-.block-container{max-width:1200px;padding-top:1.4rem;}
+.block-container{max-width:1160px;padding-top:1.25rem;padding-bottom:4rem;}
 p,li,label,div{color:var(--ink);}
 .eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.14em;color:var(--teal);text-transform:uppercase;}
-.badge{display:inline-block;padding:.2rem .6rem;border-radius:4px;font-size:.78rem;font-weight:700;color:#fff;}
+.badge{display:inline-block;padding:.25rem .65rem;border-radius:999px;font-size:.78rem;font-weight:700;color:#fff;}
 .preview{display:inline-block;border:1px solid var(--rust);color:var(--rust);padding:.25rem .6rem;border-radius:4px;font-size:.72rem;font-weight:700;letter-spacing:.1em;}
-.card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:1.1rem 1.3rem;margin:.5rem 0;}
-.panel{background:#fff;border-left:4px solid var(--teal);border-radius:0 8px 8px 0;padding:1.1rem 1.3rem;margin:.8rem 0;}
+.app-head{display:flex;justify-content:space-between;gap:2rem;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:1rem;margin-bottom:1rem;}
+.app-head h1{font-size:clamp(1.7rem,3vw,2.6rem);margin:.25rem 0 .35rem;}
+.app-head p{margin:0;color:var(--muted);max-width:720px;}
+.meta-strip{display:flex;gap:.6rem 1.4rem;flex-wrap:wrap;background:var(--wash);border:1px solid var(--line);padding:.65rem .85rem;margin:.75rem 0 1.2rem;font-size:.82rem;}
+.meta-strip b{color:var(--ink);}
+.card{background:#fff;border:1px solid var(--line);border-radius:4px;padding:1.15rem 1.3rem;margin:.6rem 0;}
+.panel{background:#fff;border-left:3px solid var(--teal);border-radius:0 4px 4px 0;padding:1rem 1.2rem;margin:.65rem 0;}
 .warn{background:#f8eee8;border-left:4px solid var(--rust);border-radius:0 8px 8px 0;padding:.8rem 1.1rem;margin:.6rem 0;}
 .muted{color:var(--muted);font-size:.9rem;}
 .tierdot{display:inline-block;width:.8rem;height:.8rem;border-radius:50%;margin-right:.4rem;vertical-align:middle;}
 .stDownloadButton button,.stButton button{border:1px solid var(--teal);color:var(--teal);background:#fff;}
 a{color:var(--teal);}
+div[data-testid="stMetric"]{background:#fff;border-top:2px solid var(--teal);padding:.85rem 1rem;}
+div[data-testid="stSegmentedControl"]{margin-bottom:.35rem;}
+div[data-testid="stSegmentedControl"] button{border-radius:0!important;font-weight:650;}
+@media(max-width:700px){.app-head{display:block}.meta-strip{gap:.4rem .8rem}.block-container{padding-top:.8rem}}
 </style>
 """
 st.markdown(CSS, unsafe_allow_html=True)
@@ -111,18 +120,37 @@ def coverage_note(row):
     return bits
 
 
-# ---- sidebar ----------------------------------------------------------------
-st.sidebar.markdown('<span class="preview">RESEARCH PREVIEW</span>', unsafe_allow_html=True)
-st.sidebar.title("Industrial Employment Risk Monitor")
-page = st.sidebar.radio("Go to", ["Overview", "Country view", "Industry view",
-                                  "Case explorer", "Model performance", "Methods & limitations"])
-st.sidebar.markdown("---")
-st.sidebar.markdown(f"**Latest scoring year:** {meta['latest_year']}  \n"
-                    f"**Scored units:** {meta['n_scored']} of {meta['n_rows']}  \n"
-                    f"**Countries:** {meta['n_countries']} · **Industries:** {meta['n_industries']}  \n"
-                    f"**Model:** `{MODEL_VERSION}`")
-st.sidebar.markdown(f"[← Back to Rahul Shukla's portfolio]({PORTFOLIO})")
-st.sidebar.caption("Screening tool. Not a forecast, not causal, not policy advice.")
+# ---- product header and simple navigation -----------------------------------
+st.markdown(
+    '<div class="app-head"><div><span class="eyebrow">UNIDO INDSTAT · EMPLOYMENT RISK</span>'
+    '<h1>Industrial Employment Risk Monitor</h1>'
+    '<p>A transparent screening tool for finding country–industry cases that may deserve '
+    'closer investigation. It is not a forecast or a causal model.</p></div>'
+    f'<div><a href="{PORTFOLIO}/industrial-employment-risk-monitor/" target="_top">'
+    'Project overview ↗</a></div></div>', unsafe_allow_html=True)
+
+mode = st.segmented_control("Choose a view", ["Briefing", "Explore", "Evidence"],
+                            default="Briefing", label_visibility="collapsed")
+if mode == "Explore":
+    explore_page = st.segmented_control(
+        "Explore by", ["A single case", "A country", "An industry"],
+        default="A single case", label_visibility="collapsed")
+    page = {"A single case": "Case explorer", "A country": "Country view",
+            "An industry": "Industry view"}[explore_page]
+elif mode == "Evidence":
+    evidence_page = st.segmented_control(
+        "Evidence view", ["Model performance", "Methods & limitations"],
+        default="Model performance", label_visibility="collapsed")
+    page = evidence_page
+else:
+    page = "Overview"
+
+st.markdown(
+    f'<div class="meta-strip"><span><b>{meta["n_countries"]}</b> economies</span>'
+    f'<span><b>{meta["n_industries"]}</b> industries</span>'
+    f'<span><b>{meta["n_scored"]:,}</b> scored cases</span>'
+    f'<span>latest year <b>{meta["latest_year"]}</b></span>'
+    f'<span>model <b>{MODEL_VERSION}</b></span></div>', unsafe_allow_html=True)
 
 
 def tier_legend():
@@ -164,7 +192,7 @@ if page == "Overview":
     fig.update_layout(title=f"Scored observations by tier ({meta['latest_year']})", height=330,
                       plot_bgcolor="#fff", paper_bgcolor="rgba(0,0,0,0)", margin=dict(t=40, b=10),
                       font=dict(color="#17252c"))
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
     st.info("This is a research preview built from UNIDO INDSTAT Rev.4 for methods demonstration. "
             "Results are descriptive risk associations, not causal findings.")
 
@@ -193,10 +221,10 @@ elif page == "Country view":
     show["Recent 3-yr employment change"] = show["g_emp_3"].map(
         lambda v: "n/a" if pd.isna(v) else f"{v*100:+.0f}%")
     st.dataframe(show[["activity", "Tier", "Risk", "Completeness", "Recent 3-yr employment change"]]
-                 .rename(columns={"activity": "Industry"}), use_container_width=True, hide_index=True)
+                 .rename(columns={"activity": "Industry"}), width="stretch", hide_index=True)
     st.plotly_chart(signbars(cdf[cdf.scoreable], label="activity",
                              title=f"{country}: calibrated risk by industry ({meta['latest_year']})"),
-                    use_container_width=True)
+                    width="stretch")
     dl = cdf[["country", "activity_code", "activity", "year", "risk_prob", "tier",
               "completeness", "in_training", "g_emp_1", "g_emp_3"]]
     st.download_button(f"Download {country} scores (CSV)", dl.to_csv(index=False),
@@ -226,13 +254,13 @@ elif page == "Industry view":
     if len(f):
         st.plotly_chart(signbars(f, label="country",
                                  title=f"{industry}: calibrated risk across countries ({meta['latest_year']})"),
-                        use_container_width=True)
+                        width="stretch")
         show = f.copy(); show["Risk"] = show["risk_prob"].map(pctw)
         show["Tier"] = show["tier"].map(lambda t: TIER_LABELS[t])
         show["In training"] = show["in_training"].map({True: "yes", False: "no"})
         st.dataframe(show[["country", "region", "Tier", "Risk", "In training"]]
                      .rename(columns={"country": "Country", "region": "Region"}),
-                     use_container_width=True, hide_index=True)
+                     width="stretch", hide_index=True)
         st.download_button("Download selection (CSV)",
                            f[["country", "activity", "year", "risk_prob", "tier", "completeness", "in_training"]].to_csv(index=False),
                            file_name=f"ierm_{industry[:20]}_{meta['latest_year']}.csv", mime="text/csv")
@@ -263,7 +291,7 @@ elif page == "Case explorer":
                               height=300, plot_bgcolor="#fff", paper_bgcolor="rgba(0,0,0,0)",
                               margin=dict(t=40, b=10), font=dict(color="#17252c"),
                               yaxis_title="index", xaxis_title="year")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         else:
             st.caption("Not enough employment history to chart.")
     with right:
@@ -328,7 +356,7 @@ elif page == "Model performance":
         fig.add_trace(go.Scatter(x=[0, 1], y=[0, 1], line=dict(dash="dash", color="#999"), showlegend=False))
         fig.update_layout(title="ROC curve", height=360, plot_bgcolor="#fff", paper_bgcolor="rgba(0,0,0,0)",
                           font=dict(color="#17252c"), xaxis_title="False positive rate", yaxis_title="True positive rate")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
     with colB:
         fig = go.Figure()
         for nm, key, col in [("Calibrated trees", "trees", "#11718b"), ("Logistic", "logistic", "#e3b23c"),
@@ -337,7 +365,7 @@ elif page == "Model performance":
         fig.add_hline(y=perf["base_rate"], line_dash="dash", line_color="#999", annotation_text="no-skill")
         fig.update_layout(title="Precision-Recall curve", height=360, plot_bgcolor="#fff", paper_bgcolor="rgba(0,0,0,0)",
                           font=dict(color="#17252c"), xaxis_title="Recall", yaxis_title="Precision")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     colC, colD = st.columns(2)
     with colC:
@@ -350,7 +378,7 @@ elif page == "Model performance":
         fig.update_layout(title="Calibration (reliability)", height=340, plot_bgcolor="#fff",
                           paper_bgcolor="rgba(0,0,0,0)", font=dict(color="#17252c"),
                           xaxis_title="Predicted probability", yaxis_title="Observed frequency")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
     with colD:
         tr = perf["tier_event_rates"]
         fig = go.Figure(go.Bar(x=[TIER_LABELS[t] for t in TIER_NAMES],
@@ -359,7 +387,7 @@ elif page == "Model performance":
                                text=[f"{round(tr[t]['event_rate']*100)} in 100" for t in TIER_NAMES]))
         fig.update_layout(title="Observed contraction rate by risk tier (test)", height=340,
                           plot_bgcolor="#fff", paper_bgcolor="rgba(0,0,0,0)", font=dict(color="#17252c"))
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     st.markdown("### Model comparison and validation (out-of-time PR-AUC)")
     cmp = pd.DataFrame({
@@ -367,13 +395,13 @@ elif page == "Model performance":
         "ROC-AUC": [m["recent_trend"]["roc_auc"], m["logistic"]["roc_auc"], m["trees_calibrated"]["roc_auc"]],
         "PR-AUC": [m["recent_trend"]["pr_auc"], m["logistic"]["pr_auc"], m["trees_calibrated"]["pr_auc"]],
         "Brier": [m["recent_trend"]["brier"], m["logistic"]["brier"], m["trees_calibrated"]["brier"]]})
-    st.dataframe(cmp, use_container_width=True, hide_index=True)
+    st.dataframe(cmp, width="stretch", hide_index=True)
     h = perf["holdouts"]
     hold = pd.DataFrame([{"Validation": k.replace("_", " "), "n_test": v["n_test"], "base rate": v["base_rate"],
                          "trees ROC-AUC": v["roc_auc"], "trees PR-AUC": v["pr_auc"],
                          "recent-trend PR-AUC": v["recent_trend_prauc"]}
                         for k, v in h.items()])
-    st.dataframe(hold, use_container_width=True, hide_index=True)
+    st.dataframe(hold, width="stretch", hide_index=True)
     st.caption("The model beats the recent-trend rule on PR-AUC in every scenario, and is weakest for "
                "countries absent from training (new countries).")
 
@@ -432,7 +460,7 @@ a choropleth, to avoid a delayed build or an unverified/disputed-boundary map.
     st.markdown("### Feature dictionary")
     st.dataframe(pd.DataFrame({"model signal (internal)": FEATURES,
                                "plain-language meaning": [PLAIN[f] for f in FEATURES]}),
-                 use_container_width=True, hide_index=True)
+                 width="stretch", hide_index=True)
     st.markdown(f"**Model:** `{MODEL_VERSION}` · calibrated gradient-boosted trees (isotonic). "
                 "See `MODEL_CARD.md` in the repository for the full model card.")
     st.caption("Concept, research design and interpretation: Rahul Shukla. "
